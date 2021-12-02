@@ -1,6 +1,6 @@
 
 
-val test_input = """199
+const val testInputDay1 = """199
 200
 208
 210
@@ -11,7 +11,7 @@ val test_input = """199
 260
 263"""
 
-val puzzle_input = """191
+const val puzzleInputDay1 = """191
 185
 188
 189
@@ -2013,11 +2013,11 @@ val puzzle_input = """191
 10526"""
 
 fun main() {
-    println(day1part1(test_input))
-    println(day1part1(puzzle_input))
+    println(day1part1(testInputDay1))
+    println(day1part1(puzzleInputDay1))
 
-    println(day1part2(test_input))
-    println(day1part2(puzzle_input))
+    println(day1part2(testInputDay1))
+    println(day1part2(puzzleInputDay1))
 }
 
 fun day1part1(input: String): Int {
