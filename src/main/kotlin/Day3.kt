@@ -3,6 +3,8 @@
 fun main() {
     println(day3Part1(testInputDay3))
     println(day3Part1(puzzleInputDay3))
+    println(day3Part2(testInputDay3))
+    println(day3Part2(puzzleInputDay3))
 }
 
 fun day3Part1(input: String): Int {
@@ -44,12 +46,12 @@ fun day3Part2(input: String): Int {
 
     var numbersLeft = binArray
     var currentIndex = 0
-    while (numbersLeft.size > 1 || currentIndex >= binArray[0].length) {
+    while (numbersLeft.size > 1 && currentIndex < binArray[0].length) {
         var oneFrequency = 0
 
         numbersLeft.forEach { if (it[currentIndex] == '1') oneFrequency++ }
 
-        val nextBinary = if (oneFrequency >= numbersLeft.size / 2) '1'
+        val nextBinary = if (oneFrequency >= numbersLeft.size / 2.0) '1'
         else '0'
 
         numbersLeft = numbersLeft.filter { it[currentIndex] == nextBinary }
@@ -57,14 +59,36 @@ fun day3Part2(input: String): Int {
         o2RatingAsString += nextBinary
     }
 
-    println("O2 Rating: $o2RatingAsString")
+    val o2Rating = Integer.parseInt(o2RatingAsString, 2)
 
+    var co2RatingAsString = ""
 
-    return 0
+    numbersLeft = binArray
+    currentIndex = 0
+    while (numbersLeft.size > 1 && currentIndex < binArray[0].length) {
+        var oneFrequency = 0
+
+        numbersLeft.forEach { if (it[currentIndex] == '1') oneFrequency++ }
+
+        val nextBinary = if (oneFrequency < numbersLeft.size / 2.0) '1'
+        else '0'
+
+        numbersLeft = numbersLeft.filter { it[currentIndex] == nextBinary }
+        currentIndex++
+        co2RatingAsString += nextBinary
+    }
+
+    if (co2RatingAsString.length < numbersLeft[0].length) {
+        co2RatingAsString += numbersLeft[0].substring(currentIndex)
+    }
+
+    val co2Rating = Integer.parseInt(co2RatingAsString, 2)
+
+    return o2Rating * co2Rating
 }
 
 
-val testInputDay3 = """00100
+const val testInputDay3 = """00100
 11110
 10110
 10111
@@ -77,7 +101,7 @@ val testInputDay3 = """00100
 00010
 01010"""
 
-val puzzleInputDay3 = """000100011010
+const val puzzleInputDay3 = """000100011010
 110011110110
 011000101111
 001101100101
