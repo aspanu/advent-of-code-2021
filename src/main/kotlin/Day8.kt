@@ -13,19 +13,6 @@ fun day8Part1(input: String): Int {
 }
 
 fun day8Part2(input: String): Int {
-    // Word of length 2 - defines 'c' and 'f'
-    // Word of length 3 - shows what 'a' is since it is whatever is not in the word of length 2
-    // Word of length 4 - gives 'b' and 'd'
-    // Find word of length 6 that has 'c' 'f' and only one of 'b' and 'd' -> what it has is 'b'
-    // Find word of length 6 that has one of 'c' and 'f' -> what it has is 'f'
-    // So far, have 'a', 'b', 'c', 'd', 'f'
-    // Find word of length 6 that has one additional letter -> this is 'g'
-    // Last one is 'e'
-
-    // Need to have function that creates dictionary based on the rules above
-    // Need to have function that turns localized into canonical definition
-    // Need to have function that turns canonical definition into integer
-
     val lines = input.split("\n")
     var sum = 0
     for (line in lines) {

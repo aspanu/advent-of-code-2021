@@ -7,14 +7,51 @@ fun main() {
 }
 
 fun day9Part1(input: String): Int {
-    return 0
+    // Find all points that have no adjacent points taller than themselves
+    // Add one to each value and then sum it all up
+
+    val heightsMatrix = input.split("\n").map { it.toCharArray().map { s -> s.toString().toInt() } }
+
+    var sum = 0
+
+    for (row in heightsMatrix.indices) {
+        for (col in heightsMatrix[row].indices) {
+            val minNeighbour = getMinNeighbour(heightsMatrix, row, col)
+            if (heightsMatrix[row][col] < minNeighbour) {
+                sum += heightsMatrix[row][col] + 1
+            }
+        }
+    }
+
+    return sum
+}
+
+fun getMinNeighbour(heightsMatrix: List<List<Int>>, row: Int, col: Int): Int {
+    val neighbours = mutableListOf<Pair<Int, Int>>()
+    if (row - 1 >= 0) neighbours.add(Pair(row - 1, col))
+    if (col - 1 >= 0) neighbours.add(Pair(row, col - 1))
+    if (row + 1 < heightsMatrix.size) neighbours.add(Pair(row + 1, col))
+    if (col + 1 < heightsMatrix[0].size) neighbours.add(Pair(row, col + 1))
+
+    var minNeighbour = Int.MAX_VALUE
+    for (neighbour in neighbours) {
+        if (minNeighbour > heightsMatrix[neighbour.first][neighbour.second]) {
+            minNeighbour = heightsMatrix[neighbour.first][neighbour.second]
+        }
+    }
+
+    return minNeighbour
 }
 
 fun day9Part2(input: String): Int {
     return 0
 }
 
-const val day9TestInput = """"""
+const val day9TestInput = """2199943210
+3987894921
+9856789892
+8767896789
+9899965678"""
 
 const val day9PuzzleInput = """9899899864598765321239999546794323489012356910136789234678999765986432109874349897678921298754345856
 8798788978989899992398798932986734678943869872345679129789999843497643298765456789568910129983236745
