@@ -26,7 +26,7 @@ fun day9Part1(input: String): Int {
     return sum
 }
 
-fun getMinNeighbour(heightsMatrix: List<List<Int>>, row: Int, col: Int): Int {
+private fun getMinNeighbour(heightsMatrix: List<List<Int>>, row: Int, col: Int): Int {
     val neighbours = mutableListOf<Pair<Int, Int>>()
     if (row - 1 >= 0) neighbours.add(Pair(row - 1, col))
     if (col - 1 >= 0) neighbours.add(Pair(row, col - 1))
@@ -44,7 +44,51 @@ fun getMinNeighbour(heightsMatrix: List<List<Int>>, row: Int, col: Int): Int {
 }
 
 fun day9Part2(input: String): Int {
-    return 0
+    // At each location check if already visited, if so, keep going
+    // Check if a '9', if so, keep going
+    // If hasn't been visited, start finding all of the neighbours that aren't '9's, and add them to the list of neighbours being checked
+    // Keep track of the size of the current basin
+
+    val heightsMatrix = input.split("\n").map { it.toCharArray().map { s -> s.toString().toInt() } }
+    val basinSizes = mutableListOf<Int>()
+    val alreadyVisited = mutableSetOf<Pair<Int, Int>>()
+
+    for (row in heightsMatrix.indices) {
+
+        for (col in heightsMatrix[row].indices) {
+            if (Pair(row, col) in alreadyVisited) continue
+            if (heightsMatrix[row][col] == 9) continue
+            val toVisit = mutableListOf(Pair(row, col))
+            var currentBasin = 0
+            while (toVisit.isNotEmpty()) {
+                val currentLocation = toVisit.removeFirst()
+                if (alreadyVisited.contains(currentLocation)) continue
+                toVisit.addAll(getAllNon9NeighboursNotVisited(heightsMatrix, currentLocation, alreadyVisited))
+                alreadyVisited.add(currentLocation)
+                currentBasin++
+            }
+            basinSizes.add(currentBasin)
+        }
+    }
+    val biggest = basinSizes.maxOrNull() ?: 0
+    basinSizes.remove(biggest)
+    val secondBiggest = basinSizes.maxOrNull() ?: 0
+    basinSizes.remove(secondBiggest)
+    val thirdBiggest = basinSizes.maxOrNull() ?: 0
+
+    return biggest * secondBiggest * thirdBiggest
+}
+
+private fun getAllNon9NeighboursNotVisited(heightsMatrix: List<List<Int>>, location: Pair<Int, Int>, visited: Set<Pair<Int, Int>>): Collection<Pair<Int, Int>> {
+    val row = location.first
+    val col = location.second
+    val neighbours = mutableListOf<Pair<Int, Int>>()
+    if (row - 1 >= 0) neighbours.add(Pair(row - 1, col))
+    if (col - 1 >= 0) neighbours.add(Pair(row, col - 1))
+    if (row + 1 < heightsMatrix.size) neighbours.add(Pair(row + 1, col))
+    if (col + 1 < heightsMatrix[0].size) neighbours.add(Pair(row, col + 1))
+
+    return neighbours.filterNot { visited.contains(it) || heightsMatrix[it.first][it.second] == 9 }
 }
 
 const val day9TestInput = """2199943210
