@@ -13,8 +13,166 @@ fun day8Part1(input: String): Int {
 }
 
 fun day8Part2(input: String): Int {
-    return 0
+    // Word of length 2 - defines 'c' and 'f'
+    // Word of length 3 - shows what 'a' is since it is whatever is not in the word of length 2
+    // Word of length 4 - gives 'b' and 'd'
+    // Find word of length 6 that has 'c' 'f' and only one of 'b' and 'd' -> what it has is 'b'
+    // Find word of length 6 that has one of 'c' and 'f' -> what it has is 'f'
+    // So far, have 'a', 'b', 'c', 'd', 'f'
+    // Find word of length 6 that has one additional letter -> this is 'g'
+    // Last one is 'e'
+
+    // Need to have function that creates dictionary based on the rules above
+    // Need to have function that turns localized into canonical definition
+    // Need to have function that turns canonical definition into integer
+
+    val lines = input.split("\n")
+    var sum = 0
+    for (line in lines) {
+        val lineSegments = line.split(" | ")
+        val dictionaryStrings = lineSegments[0].split(" ")
+        val numbersToTransform = lineSegments[1].split(" ")
+
+        val localizedToCanonical = buildLocalizedToCanonicalDictionary(dictionaryStrings)
+
+        val numberFromLocalized = getNumberFromLocalized(localizedToCanonical, numbersToTransform)
+        sum += numberFromLocalized
+    }
+
+    return sum
 }
+
+fun buildLocalizedToCanonicalDictionary(dictionaryStrings: List<String>): Map<Char, Char> {
+    // Go through the dictionary strings and use the following steps to deduce each:
+    // Word of length 2 - defines 'c' and 'f'
+    // Word of length 3 - shows what 'a' is since it is whatever is not in the word of length 2
+    // Word of length 4 - gives 'b' and 'd'
+    // Find word of length 6 that has 'c' 'f' and only one of 'b' and 'd' -> what it has is 'b'
+    // Find word of length 6 that has one of 'c' and 'f' -> what it has is 'f'
+    // So far, have 'a', 'b', 'c', 'd', 'f'
+    // Find word of length 6 that has one additional letter -> this is 'g'
+    // Last one is 'e'
+
+    val letterSet = setOf('a', 'b', 'c', 'd', 'e', 'f', 'g')
+    val wordLength2 = dictionaryStrings.find { it.length == 2 } ?: ""
+    val wordLength3 = dictionaryStrings.find { it.length == 3 } ?: ""
+
+    val dictionary = mutableMapOf<Char, Char>()
+
+    val foundLettersSet = mutableSetOf<Char>()
+    val cAndF = mutableSetOf<Char>()
+    for (char in wordLength3) {
+        if (!wordLength2.contains(char)) {
+            dictionary['a'] = char
+            foundLettersSet.add(char)
+        } else {
+            cAndF.add(char)
+        }
+    }
+
+    val wordLength4 = dictionaryStrings.find { it.length == 4 } ?: ""
+    val bAndD = mutableSetOf<Char>()
+    for (char in wordLength4) {
+        if (!cAndF.contains(char)) bAndD.add(char)
+    }
+
+    val wordLength6OnlyOneBAndD = dictionaryStrings.find { it.length == 6 && it.containsOneOfSet(bAndD) } ?: ""
+    for (char in wordLength6OnlyOneBAndD) {
+        if (bAndD.contains(char)) {
+            dictionary['b'] = char
+            foundLettersSet.add(char)
+            bAndD.remove(char)
+            dictionary['d'] = bAndD.first()
+            foundLettersSet.add(bAndD.first())
+            break
+        }
+    }
+
+    val wordLength6OnlyOneCAndF = dictionaryStrings.find { it.length == 6 && it.containsOneOfSet(cAndF) } ?: ""
+    for (char in wordLength6OnlyOneCAndF) {
+        if (cAndF.contains(char)) {
+            dictionary['f'] = char
+            foundLettersSet.add(char)
+            cAndF.remove(char)
+            dictionary['c'] = cAndF.first()
+            foundLettersSet.add(cAndF.first())
+            break
+        }
+    }
+
+    val wordLength6OneLetterNotFound = dictionaryStrings.find { it.length == 6 && it.hasAllInSet(foundLettersSet)} ?: ""
+    for (char in wordLength6OneLetterNotFound) {
+        if (!foundLettersSet.contains(char)) {
+            dictionary['g'] = char
+            foundLettersSet.add(char)
+            break
+        }
+    }
+
+    for (char in letterSet) {
+        if (!foundLettersSet.contains(char)) {
+            dictionary['e'] = char
+        }
+    }
+
+    return dictionary.entries.associate { (k,v) -> v to k}
+}
+
+private fun String.hasAllInSet(charSet: Set<Char>): Boolean {
+    var numFoundInSet = 0
+    for (char in this) {
+        if (char in charSet) numFoundInSet++
+    }
+
+    return numFoundInSet == charSet.size
+}
+
+private fun String.containsOneOfSet(charSet: Set<Char>): Boolean {
+    var hasHitOnce = false
+    for (char in this) {
+        if (charSet.contains(char)) {
+            if (hasHitOnce) return false
+
+            hasHitOnce = true
+        }
+    }
+    return hasHitOnce
+}
+
+fun getNumberFromLocalized(localizedToCanonical: Map<Char, Char>, numbersToTransform: List<String>): Int {
+
+    var numberAsString = ""
+    for (stringNumber in numbersToTransform) {
+        val canonicalNumber = makeCanonical(localizedToCanonical, stringNumber)
+        numberAsString += canonicalToInteger[canonicalNumber].toString()
+    }
+
+    return numberAsString.toInt()
+}
+
+fun makeCanonical(localizedToCanonical: Map<Char, Char>, toCanonicalize: String): String {
+
+    var newString = ""
+
+    for (char in toCanonicalize) {
+        newString += localizedToCanonical[char] ?: ""
+    }
+
+    return newString.toCharArray().sorted().joinToString("")
+}
+
+val canonicalToInteger = mapOf(
+    "abcefg" to 0,
+    "cf" to 1,
+    "acdeg" to 2,
+    "acdfg" to 3,
+    "bcdf" to 4,
+    "abdfg" to 5,
+    "abdefg" to 6,
+    "acf" to 7,
+    "abcdefg" to 8,
+    "abcdfg" to 9,
+)
 
 const val day8TestInput = """be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
 edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
