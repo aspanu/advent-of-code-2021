@@ -1,3 +1,4 @@
+import java.util.*
 
 fun main() {
     println(day10Part1(day10TestInput))
@@ -7,12 +8,47 @@ fun main() {
 }
 
 fun day10Part1(input: String): Int {
-    return 0
+    // Keep a stack of opened paren
+    // Whenever we have a close paren, try to see if the next pop of the stack works for closing the paren
+    // If not, then we have a corruption
+
+    val lines = input.split("\n").map { s -> s.toCharArray().map { it.toString() } }
+    var syntaxSum = 0
+    for (line in lines) {
+        val stack = LinkedList<String>()
+        for (paren in line) {
+            if (paren in openSet) {
+                stack.push(paren)
+            } else {
+                val parenPopped = stack.pop()
+                if (matchParen[parenPopped] != paren) {
+                    syntaxSum += syntaxErrorPoints[paren] ?: 0
+                }
+            }
+        }
+    }
+    return syntaxSum
 }
 
 fun day10Part2(input: String): Int {
     return 0
 }
+
+val openSet = setOf("(", "[", "{", "<")
+
+val matchParen = mapOf(
+    "(" to ")",
+    "[" to "]",
+    "{" to "}",
+    "<" to ">",
+)
+
+val syntaxErrorPoints = mapOf(
+    ")" to 3,
+    "]" to 57,
+    "}" to 1197,
+    ">" to 25137,
+)
 
 const val day10TestInput = """[({(<(())[]>[[{[]{<()<>>
 [(()[<>])]({[<{<<[]>>(
