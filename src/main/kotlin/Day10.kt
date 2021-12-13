@@ -30,8 +30,36 @@ fun day10Part1(input: String): Int {
     return syntaxSum
 }
 
-fun day10Part2(input: String): Int {
-    return 0
+fun day10Part2(input: String): Long {
+    val lines = input.split("\n").map { s -> s.toCharArray().map { it.toString() } }
+    val scores = mutableListOf<Long>()
+    for (line in lines) {
+        val stack = LinkedList<String>()
+        var corrupted = false
+        for (paren in line) {
+            if (paren in openSet) {
+                stack.push(paren)
+            } else {
+                val parenPopped = stack.pop()
+                if (matchParen[parenPopped] != paren) {
+                    corrupted = true
+                    break
+                }
+            }
+        }
+        if (!corrupted) {
+            var totalScore = 0L
+            while (stack.isNotEmpty()) {
+                val parenAdded = matchParen[stack.pop()] ?: ""
+                totalScore = (totalScore*5) + (parenPoints[parenAdded] ?: 0)
+            }
+            scores.add(totalScore)
+        }
+    }
+
+    //Assume scores is odd
+    val sortedScores = scores.sorted()
+    return sortedScores[sortedScores.size / 2]
 }
 
 val openSet = setOf("(", "[", "{", "<")
@@ -40,14 +68,21 @@ val matchParen = mapOf(
     "(" to ")",
     "[" to "]",
     "{" to "}",
-    "<" to ">",
+    "<" to ">"
+)
+
+val parenPoints = mapOf(
+        ")" to 1,
+        "]" to 2,
+        "}" to 3,
+        ">" to 4
 )
 
 val syntaxErrorPoints = mapOf(
     ")" to 3,
     "]" to 57,
     "}" to 1197,
-    ">" to 25137,
+    ">" to 25137
 )
 
 const val day10TestInput = """[({(<(())[]>[[{[]{<()<>>
