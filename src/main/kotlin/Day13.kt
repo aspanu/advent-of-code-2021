@@ -1,3 +1,4 @@
+import java.util.*
 
 fun main() {
     println(day13Part1(day13TestInput))
@@ -8,11 +9,92 @@ fun main() {
 
 
 fun day13Part1(input: String): Int {
-    return 0
+    val points = mutableSetOf<Pair<Int, Int>>()
+    val folds = mutableListOf<Pair<Char, Int>>()
+
+    input.split("\n").forEach { line ->
+        if (line.contains(",")) {
+            val coords = line.split(",")
+            points.add(Pair(coords[0].toInt(), coords[1].toInt()))
+        } else if (line.contains("=")) {
+            val foldParts = line.split(" ")[2].split("=")
+            folds.add(Pair(foldParts[0][0], foldParts[1].toInt()))
+        }
+    }
+
+    val newPoints = foldOn(points, folds[0])
+    return newPoints.size
+}
+
+fun foldOn(points: Set<Pair<Int, Int>>, fold: Pair<Char, Int>): Set<Pair<Int, Int>> {
+    val newSet = mutableSetOf<Pair<Int, Int>>()
+    for (point in points) {
+        if (belowFold(point, fold)) {
+            // Fold the point over
+            newSet.add(foldedPoint(point, fold))
+        } else {
+            newSet.add(point)
+        }
+    }
+    return newSet
+}
+
+fun foldedPoint(point: Pair<Int, Int>, fold: Pair<Char, Int>): Pair<Int, Int> {
+    val distance = if (fold.first == 'x')
+        point.first - fold.second
+    else
+        point.second - fold.second
+
+    return if (fold.first == 'x')
+        Pair(fold.second - distance, point.second)
+    else
+        Pair(point.first, fold.second - distance)
+}
+
+fun belowFold(point: Pair<Int, Int>, fold: Pair<Char, Int>): Boolean {
+    return if (fold.first == 'x') {
+        point.first > fold.second
+    } else {
+        point.second > fold.second
+    }
 }
 
 fun day13Part2(input: String): Int {
-    return 0
+    val points = mutableSetOf<Pair<Int, Int>>()
+    val folds = mutableListOf<Pair<Char, Int>>()
+
+    input.split("\n").forEach { line ->
+        if (line.contains(",")) {
+            val coords = line.split(",")
+            points.add(Pair(coords[0].toInt(), coords[1].toInt()))
+        } else if (line.contains("=")) {
+            val foldParts = line.split(" ")[2].split("=")
+            folds.add(Pair(foldParts[0][0], foldParts[1].toInt()))
+        }
+    }
+
+    var newPoints = points.toSet()
+    for (fold in folds) {
+        newPoints = foldOn(newPoints, fold)
+    }
+    printPoints(newPoints)
+    return newPoints.size
+}
+
+fun printPoints(points: Set<Pair<Int, Int>>) {
+    val maxRow = points.maxOf { it.first } + 1
+    val maxCol = points.maxOf { it.second } + 1
+    val grid = List( maxRow ) { MutableList(maxCol) { "." } }
+    for (row in grid.indices) {
+        for (col in grid[0].indices) {
+            if (points.contains(Pair(row,col))) {
+                grid[row][col] = "#"
+            }
+        }
+    }
+    for (row in grid) {
+        println(row)
+    }
 }
 
 const val day13TestInput = """6,10
