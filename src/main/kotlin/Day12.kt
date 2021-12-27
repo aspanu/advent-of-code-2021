@@ -1,9 +1,9 @@
 
 fun main() {
-//    println(day12Part1(day12TestInput))
-//    println(day12Part1(day12TestInput2))
-//    println(day12Part1(day12TestInput3))
-//    println(day12Part1(day12PuzzleInput))
+    println(day12Part1(day12TestInput))
+    println(day12Part1(day12TestInput2))
+    println(day12Part1(day12TestInput3))
+    println(day12Part1(day12PuzzleInput))
     println(day12Part2(day12TestInput))
     println(day12Part2(day12TestInput2))
     println(day12Part2(day12TestInput3))
