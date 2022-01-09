@@ -1,15 +1,145 @@
+import kotlin.math.min
 
 fun main() {
-    println(day15Part1(day15TestInput))
-    println(day15Part1(day15PuzzleInput))
-    println(day15Part2(day15PuzzleInput))
-    println(day15Part2(day15PuzzleInput))
+    println(day15Part1(day15TestInputPart1))
+    println(day15Part1(day15PuzzleInputPart1))
+    println(day15Part1(day15TestInputPart2))
+    println(day15Part2(day15TestInputPart1))
+    println(day15Part2(day15PuzzleInputPart1))
 }
 
 fun day15Part1(input: String): Int {
     val riskLevels = input.split("\n").map { it.map { ch -> ch.digitToInt() } }
 
-    return findLeastRiskyPath(riskLevels, Pair(0, 0), setOf(), 0, Int.MAX_VALUE)
+    return shortestPathDijkstra(riskLevels)
+}
+
+fun shortestPathDijkstra(riskLevels: List<List<Int>>): Int {
+    val visited = mutableSetOf<Pair<Int, Int>>()
+    val toVisit = riskLevels.mapIndexed { i, row -> row.mapIndexed { j, _ -> Pair(i, j) } }.flatten().toMutableSet()
+    val pathLengths = List(riskLevels.size) { MutableList(riskLevels[0].size) { Int.MAX_VALUE } }
+    pathLengths[0][0] = 0 // Start node
+
+    while (toVisit.isNotEmpty()) {
+        val node = getMinDistancePoint(pathLengths, toVisit)
+        toVisit.remove(node)
+        visited.add(node)
+        for (neighbour in getAllNeighbours(riskLevels, node)) {
+            val neighbourPath = pathLengths[node.first][node.second] + riskLevels[neighbour.first][neighbour.second]
+            if (pathLengths[neighbour.first][neighbour.second] > neighbourPath) {
+                pathLengths[neighbour.first][neighbour.second] = neighbourPath
+            }
+        }
+    }
+
+    return pathLengths[riskLevels.size - 1][riskLevels[0].size - 1]
+}
+
+fun getAllNeighbours(board: List<List<Int>>, node: Pair<Int, Int>): List<Pair<Int, Int>> {
+    val deltas = listOf(Pair(1,0), Pair(0,1), Pair(-1,0), Pair(0,-1))
+    val neighbours = mutableListOf<Pair<Int,Int>>()
+    for (delta in deltas) {
+        val dRow = node.first + delta.first
+        val dCol = node.second + delta.second
+        val dPoint = Pair(dRow, dCol)
+        if (dRow >= 0 && dRow < board.size && dCol >= 0 && dCol < board[0].size) {
+            neighbours.add(dPoint)
+        }
+    }
+    return neighbours
+}
+
+fun getMinDistancePoint(pathLengths: List<MutableList<Int>>, toVisit: Set<Pair<Int, Int>>): Pair<Int, Int> {
+    return toVisit.minByOrNull { pathLengths[it.first][it.second] } ?: Pair(0,0)
+}
+
+fun day15Part2(input: String): Int {
+    // Same thing as part 1, but mutate both the row and column as well as the values as you get bigger
+    val riskLevels = input.split("\n").map { it.map { ch -> ch.digitToInt() } }
+
+    return shortestPathDijkstraPart2(riskLevels)
+}
+
+fun shortestPathDijkstraPart2(riskLevels: List<List<Int>>): Int {
+    val visited = mutableSetOf<Pair<Int, Int>>()
+    val toVisit = mutableSetOf<Pair<Int, Int>>()
+    for (row in 0 until riskLevels.size * 5) {
+        for (col in 0 until riskLevels[0].size * 5) {
+            toVisit.add(Pair(row, col))
+        }
+    }
+
+    val pathLengths = List(riskLevels.size * 5) { MutableList(riskLevels[0].size * 5) { Int.MAX_VALUE } }
+    pathLengths[0][0] = 0 // Start node
+
+    while (toVisit.isNotEmpty()) {
+        val node = getMinDistancePoint(pathLengths, toVisit)
+        toVisit.remove(node)
+        visited.add(node)
+        for (neighbour in getAllNeighbours(pathLengths, node)) {
+            val amountMapped = getMappedAmount(riskLevels, neighbour)
+            val neighbourPath = pathLengths[node.first][node.second] + amountMapped
+            if (pathLengths[neighbour.first][neighbour.second] > neighbourPath) {
+                pathLengths[neighbour.first][neighbour.second] = neighbourPath
+            }
+        }
+    }
+
+    return pathLengths[pathLengths.size - 1][pathLengths[0].size - 1]
+}
+
+fun getMappedAmount(board: List<List<Int>>, node: Pair<Int, Int>): Int {
+    val mappedRow = node.first % board.size
+    val mappedCol = node.second % board[0].size
+    val offsetAmount = board[mappedRow][mappedCol] + (node.first / board.size) + (node.second / board[0].size)
+    return (offsetAmount % 10) + if (offsetAmount >= 10) 1 else 0
+}
+
+
+fun shortestPathDp(riskLevels: List<List<Int>>): Int {
+    // This doesn't work because of course you can't only compare right and down neighbours, since you may need to go up and left at times
+    // Start at the end, that is the shortest path, then move to each neighbour and add it's shortest path
+    // Do the bottom row, etc. until get to the first one
+
+    val shortestPaths = List(riskLevels.size) { MutableList(riskLevels[0].size) { 0 } }
+
+    for (row in riskLevels.size - 1 downTo 0) {
+        for (col in riskLevels[0].size - 1 downTo 0) {
+            shortestPaths[row][col] = getMinPathsOfNeighbours(shortestPaths, row, col) + riskLevels[row][col]
+        }
+    }
+
+    return shortestPaths[0][0]
+}
+
+fun getMinPathsOfNeighbours(paths: List<MutableList<Int>>, row: Int, col: Int): Int {
+    val neighbourPaths = mutableListOf<Int>()
+    if (row + 1 < paths.size)
+        neighbourPaths.add(paths[row+1][col])
+    if (col + 1 < paths[0].size)
+        neighbourPaths.add(paths[row][col+1])
+
+    return neighbourPaths.minOrNull() ?: 0
+}
+
+fun findLeastRiskPathRedux(riskLevels: List<List<Int>>, visited: Set<Pair<Int, Int>>, currentPoint: Pair<Int, Int>, shortestPathSoFar: Int, currentPath: Int) : Int {
+    val currentPathCost = currentPath + riskLevels[currentPoint.first][currentPoint.second]
+    if (currentPoint.first == riskLevels.size - 1 && currentPoint.second == riskLevels[0].size - 1) // We're at the end
+        return min(currentPathCost, shortestPathSoFar)
+    if (currentPathCost > shortestPathSoFar)
+        return shortestPathSoFar // Short circuit since this path is already bad
+
+    val newVisited = visited.toMutableSet()
+    newVisited.add(currentPoint)
+
+    var shortestPathFound = shortestPathSoFar
+
+    for (neighbour in getNextNeighbourPoints(riskLevels, currentPoint, visited)) {
+        val shortestPath = findLeastRiskPathRedux(riskLevels, newVisited, neighbour, shortestPathFound, currentPathCost)
+        if (shortestPath < shortestPathFound)
+            shortestPathFound = shortestPath
+    }
+    return shortestPathFound
 }
 
 fun findLeastRiskyPath(
@@ -19,7 +149,7 @@ fun findLeastRiskyPath(
     pathCostSoFar: Int,
     shortestPathCost: Int
 ): Int {
-    if (currentPoint == Pair(riskLevels.size, riskLevels[0].size)) {
+    if (currentPoint == Pair(riskLevels.size - 1, riskLevels[0].size - 1)) {
         // We have arrived!
         val currentPathLength = pathCostSoFar + riskLevels[currentPoint.first][currentPoint.second]
         return if (currentPathLength < shortestPathCost) {
@@ -58,7 +188,7 @@ fun getNextNeighbourPoints(
 ): List<Pair<Int, Int>> {
     val row = currentPoint.first
     val col = currentPoint.second
-    val deltas = listOf<Pair<Int, Int>>(Pair(1,0), Pair(0,1), Pair(-1,0), Pair(0,-1))
+    val deltas = listOf(Pair(1,0), Pair(0,1), Pair(-1,0), Pair(0,-1))
     val neighbours = mutableListOf<Pair<Int,Int>>()
     for (delta in deltas) {
         val dRow = row + delta.first
@@ -71,11 +201,7 @@ fun getNextNeighbourPoints(
     return neighbours
 }
 
-fun day15Part2(input: String): Int {
-    return 0
-}
-
-const val day15TestInput = """1163751742
+const val day15TestInputPart1 = """1163751742
 1381373672
 2136511328
 3694931569
@@ -86,7 +212,58 @@ const val day15TestInput = """1163751742
 1293138521
 2311944581"""
 
-const val day15PuzzleInput = """1839699672891217819841135688732885247928872185751688897193694689841978768898988716768379159626957769
+const val day15TestInputPart2 = """11637517422274862853338597396444961841755517295286
+13813736722492484783351359589446246169155735727126
+21365113283247622439435873354154698446526571955763
+36949315694715142671582625378269373648937148475914
+74634171118574528222968563933317967414442817852555
+13191281372421239248353234135946434524615754563572
+13599124212461123532357223464346833457545794456865
+31254216394236532741534764385264587549637569865174
+12931385212314249632342535174345364628545647573965
+23119445813422155692453326671356443778246755488935
+22748628533385973964449618417555172952866628316397
+24924847833513595894462461691557357271266846838237
+32476224394358733541546984465265719557637682166874
+47151426715826253782693736489371484759148259586125
+85745282229685639333179674144428178525553928963666
+24212392483532341359464345246157545635726865674683
+24611235323572234643468334575457944568656815567976
+42365327415347643852645875496375698651748671976285
+23142496323425351743453646285456475739656758684176
+34221556924533266713564437782467554889357866599146
+33859739644496184175551729528666283163977739427418
+35135958944624616915573572712668468382377957949348
+43587335415469844652657195576376821668748793277985
+58262537826937364893714847591482595861259361697236
+96856393331796741444281785255539289636664139174777
+35323413594643452461575456357268656746837976785794
+35722346434683345754579445686568155679767926678187
+53476438526458754963756986517486719762859782187396
+34253517434536462854564757396567586841767869795287
+45332667135644377824675548893578665991468977611257
+44961841755517295286662831639777394274188841538529
+46246169155735727126684683823779579493488168151459
+54698446526571955763768216687487932779859814388196
+69373648937148475914825958612593616972361472718347
+17967414442817852555392896366641391747775241285888
+46434524615754563572686567468379767857948187896815
+46833457545794456865681556797679266781878137789298
+64587549637569865174867197628597821873961893298417
+45364628545647573965675868417678697952878971816398
+56443778246755488935786659914689776112579188722368
+55172952866628316397773942741888415385299952649631
+57357271266846838237795794934881681514599279262561
+65719557637682166874879327798598143881961925499217
+71484759148259586125936169723614727183472583829458
+28178525553928963666413917477752412858886352396999
+57545635726865674683797678579481878968159298917926
+57944568656815567976792667818781377892989248891319
+75698651748671976285978218739618932984172914319528
+56475739656758684176786979528789718163989182927419
+67554889357866599146897761125791887223681299833479"""
+
+const val day15PuzzleInputPart1 = """1839699672891217819841135688732885247928872185751688897193694689841978768898988716768379159626957769
 2192965275394162996999895995785387868994994237879517119896718684447799929129197684778981358614968999
 4927383925892593199621279935962919798987897179929239949761461388699843711988814644869741378719173483
 8477219799114299945911696955298929578477221885481596518899422291833711899891919649968262899912978495
@@ -186,3 +363,5 @@ const val day15PuzzleInput = """183969967289121781984113568873288524792887218575
 9879861126679363918974986484928288831691848721349296732824948923888932696139779188699788579981817411
 9537881896773448882931789856999511751189985796662931657323198877792797393599726994959993148693994398
 8933595393747579247498891129685978923196761941162347892984592262912838443199289579117219188537241993"""
+
+const val day15PuzzleInputPart2 = """"""
