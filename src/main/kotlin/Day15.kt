@@ -95,7 +95,7 @@ fun getMappedAmount(board: List<List<Int>>, node: Pair<Int, Int>): Int {
     return (offsetAmount % 10) + if (offsetAmount >= 10) 1 else 0
 }
 
-
+// Didn't work!
 fun shortestPathDp(riskLevels: List<List<Int>>): Int {
     // This doesn't work because of course you can't only compare right and down neighbours, since you may need to go up and left at times
     // Start at the end, that is the shortest path, then move to each neighbour and add it's shortest path
@@ -122,6 +122,7 @@ fun getMinPathsOfNeighbours(paths: List<MutableList<Int>>, row: Int, col: Int): 
     return neighbourPaths.minOrNull() ?: 0
 }
 
+// Took too long for the input set
 fun findLeastRiskPathRedux(riskLevels: List<List<Int>>, visited: Set<Pair<Int, Int>>, currentPoint: Pair<Int, Int>, shortestPathSoFar: Int, currentPath: Int) : Int {
     val currentPathCost = currentPath + riskLevels[currentPoint.first][currentPoint.second]
     if (currentPoint.first == riskLevels.size - 1 && currentPoint.second == riskLevels[0].size - 1) // We're at the end
@@ -142,6 +143,7 @@ fun findLeastRiskPathRedux(riskLevels: List<List<Int>>, visited: Set<Pair<Int, I
     return shortestPathFound
 }
 
+// Incorrect!
 fun findLeastRiskyPath(
     riskLevels: List<List<Int>>,
     currentPoint: Pair<Int, Int>,
